@@ -4,6 +4,8 @@ import { AppService } from './app.service';
 import { TournamentsModule } from './tournaments/tournaments.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TournamentEntity } from './tournaments/entities/tournament.entity';
+import { MatchesModule } from './matches/matches.module';
+import { MatchEntity } from './matches/entities/match.entity';
 
 @Module({
   imports: [
@@ -14,10 +16,11 @@ import { TournamentEntity } from './tournaments/entities/tournament.entity';
       username: 'postgres',
       password: '896896',
       database: 'plove',
-      entities: [TournamentEntity],
+      entities: [TournamentEntity, MatchEntity],
       synchronize: true,
     }),
     TournamentsModule,
+    MatchesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
