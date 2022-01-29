@@ -21,7 +21,7 @@ export class TournamentsService {
   }
 
   findOne(id: number) {
-    return this.tournamentRepository.findOne(id);
+    return this.tournamentRepository.findOne(id, { relations: ['matches'] });
   }
 
   async update(id: number, dto: UpdateTournamentDto) {

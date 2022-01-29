@@ -12,10 +12,13 @@ export class MatchesService {
   ) {}
 
   create(dto: CreateMatchDto) {
-    return this.matchesRepository.save(dto);
+    return this.matchesRepository.save({
+      ...dto,
+      tournament: { id: dto.tournamentId },
+    });
   }
 
   findAll() {
-    return this.matchesRepository.find();
+    return this.matchesRepository.find({ relations: ['tournament'] });
   }
 }

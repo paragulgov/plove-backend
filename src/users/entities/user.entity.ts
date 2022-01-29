@@ -2,25 +2,28 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
-import { MatchEntity } from '../../matches/entities/match.entity';
 
-@Entity('tournaments')
-export class TournamentEntity {
+@Entity('users')
+export class UserEntity {
   @ApiProperty()
   @PrimaryGeneratedColumn()
   id: number;
 
   @ApiProperty()
   @Column({ nullable: false })
-  name: string;
+  fullName: string;
 
-  @OneToMany(() => MatchEntity, (match) => match.tournament)
-  matches: MatchEntity[];
+  @ApiProperty()
+  @Column({ unique: true })
+  email: string;
+
+  @ApiProperty()
+  @Column({ default: false })
+  isActivated: boolean;
 
   @ApiProperty()
   @CreateDateColumn({ type: 'timestamp' })

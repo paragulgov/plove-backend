@@ -2,11 +2,13 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsBoolean } from 'class-validator';
+import { TournamentEntity } from '../../tournaments/entities/tournament.entity';
 
 @Entity('matches')
 export class MatchEntity {
@@ -34,6 +36,11 @@ export class MatchEntity {
   @Column({ default: false })
   @IsBoolean()
   isFinished: boolean;
+
+  @ManyToOne(() => TournamentEntity, (tournament) => tournament.matches, {
+    nullable: false,
+  })
+  tournament: TournamentEntity;
 
   @ApiProperty()
   @CreateDateColumn({ type: 'timestamp' })

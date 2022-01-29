@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateMatchDto {
@@ -11,4 +11,9 @@ export class CreateMatchDto {
   @IsNotEmpty({ message: 'Укажите название выездной команды' })
   @IsString()
   awayTeam: string;
+
+  @ApiProperty()
+  @IsNotEmpty({ message: 'Укажите турнир' })
+  @IsNumber()
+  tournamentId: number;
 }
