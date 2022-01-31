@@ -19,6 +19,8 @@ export class MatchesService {
   }
 
   findAll() {
-    return this.matchesRepository.find({ relations: ['tournament'] });
+    return this.matchesRepository.find({
+      relations: ['tournament', 'bets', 'bets.user'],
+    });
   }
 }

@@ -10,6 +10,8 @@ import { UsersModule } from './users/users.module';
 import { UserEntity } from './users/entities/user.entity';
 import { TablesModule } from './tables/tables.module';
 import { TableEntity } from './tables/entities/table.entity';
+import { BetsModule } from './bets/bets.module';
+import { BetEntity } from './bets/entities/bet.entity';
 
 @Module({
   imports: [
@@ -20,13 +22,20 @@ import { TableEntity } from './tables/entities/table.entity';
       username: 'postgres',
       password: '896896',
       database: 'plove',
-      entities: [TournamentEntity, MatchEntity, UserEntity, TableEntity],
+      entities: [
+        TournamentEntity,
+        MatchEntity,
+        UserEntity,
+        TableEntity,
+        BetEntity,
+      ],
       synchronize: true,
     }),
     TournamentsModule,
     MatchesModule,
     UsersModule,
     TablesModule,
+    BetsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

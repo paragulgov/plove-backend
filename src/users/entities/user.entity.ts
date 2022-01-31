@@ -2,10 +2,12 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
+import { BetEntity } from '../../bets/entities/bet.entity';
 
 @Entity('users')
 export class UserEntity {
@@ -24,6 +26,9 @@ export class UserEntity {
   @ApiProperty()
   @Column({ default: false })
   isActivated: boolean;
+
+  @OneToMany(() => BetEntity, (bet) => bet.user)
+  bets: BetEntity[];
 
   @ApiProperty()
   @CreateDateColumn({ type: 'timestamp' })

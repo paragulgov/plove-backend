@@ -3,12 +3,14 @@ import {
   CreateDateColumn,
   Entity,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsBoolean } from 'class-validator';
 import { TournamentEntity } from '../../tournaments/entities/tournament.entity';
+import { BetEntity } from '../../bets/entities/bet.entity';
 
 @Entity('matches')
 export class MatchEntity {
@@ -41,6 +43,9 @@ export class MatchEntity {
     nullable: false,
   })
   tournament: TournamentEntity;
+
+  @OneToMany(() => BetEntity, (bet) => bet.match)
+  bets: BetEntity[];
 
   @ApiProperty()
   @CreateDateColumn({ type: 'timestamp' })
