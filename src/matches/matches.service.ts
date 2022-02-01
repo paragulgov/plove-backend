@@ -20,6 +20,12 @@ export class MatchesService {
 
   findAll() {
     return this.matchesRepository.find({
+      relations: ['tournament'],
+    });
+  }
+
+  findOne(id: number) {
+    return this.matchesRepository.findOne(id, {
       relations: ['tournament', 'bets', 'bets.user'],
     });
   }

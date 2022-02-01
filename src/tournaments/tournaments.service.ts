@@ -1,37 +1,19 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateTournamentDto } from './dto/create-tournament.dto';
 import { UpdateTournamentDto } from './dto/update-tournament.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TournamentEntity } from './entities/tournament.entity';
-import { TablesService } from '../tables/tables.service';
 
 @Injectable()
 export class TournamentsService {
   constructor(
     @InjectRepository(TournamentEntity)
     private tournamentRepository: Repository<TournamentEntity>,
-    private readonly tablesService: TablesService,
   ) {}
 
-  async create(dto: CreateTournamentDto) {
-    const tournament = await this.tournamentRepository.save(dto);
-
-    if (tournament && tournament.id) {
-      const table = await this.tablesService.create(tournament.id);
-
-      if (table) {
-        return this.tournamentRepository.findOne(tournament.id, {
-          relations: ['table'],
-        });
-      }
-    }
-
-    throw new BadRequestException('Неудалось создать турнир');
+  create(dto: CreateTournamentDto) {
+    return this.tournamentRepository.save(dto);
   }
 
   findAll() {
@@ -39,7 +21,9 @@ export class TournamentsService {
   }
 
   findOne(id: number) {
-    return this.tournamentRepository.findOne(id, { relations: ['matches'] });
+    return this.tournamentRepository.findOne(id, {
+      relations: ['matches'],
+    });
   }
 
   async update(id: number, dto: UpdateTournamentDto) {

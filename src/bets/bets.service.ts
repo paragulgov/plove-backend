@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateBetDto } from './dto/create-bet.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -21,5 +21,27 @@ export class BetsService {
 
   findAll() {
     return this.betsRepository.find({ relations: ['match', 'user'] });
+  }
+
+  findByMatch(matchId: number) {
+    if (!matchId) {
+      throw new BadRequestException();
+    }
+
+    return this.betsRepository.find({
+      where: { match: { id: matchId } },
+      relations: ['match', 'user'],
+    });
+  }
+
+  findByUser(userId: number) {
+    if (!userId) {
+      throw new BadRequestException();
+    }
+
+    return this.betsRepository.find({
+      where: { user: { id: userId } },
+      relations: ['match'],
+    });
   }
 }

@@ -13,6 +13,21 @@ export class BetEntity {
   @Column({ default: null })
   awayTeamGoalsBet: null | number;
 
+  @Column({ default: false })
+  isFinished: boolean;
+
+  @Column({ default: false })
+  accurateScore: boolean;
+
+  @Column({ default: false })
+  goalDifference: boolean;
+
+  @Column({ default: false })
+  matchOutcome: boolean;
+
+  @Column({ default: 0 })
+  points: number;
+
   @ManyToOne(() => MatchEntity, (match) => match.bets)
   match: MatchEntity;
 

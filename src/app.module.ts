@@ -8,10 +8,10 @@ import { MatchesModule } from './matches/matches.module';
 import { MatchEntity } from './matches/entities/match.entity';
 import { UsersModule } from './users/users.module';
 import { UserEntity } from './users/entities/user.entity';
-import { TablesModule } from './tables/tables.module';
-import { TableEntity } from './tables/entities/table.entity';
 import { BetsModule } from './bets/bets.module';
 import { BetEntity } from './bets/entities/bet.entity';
+import { StatisticsModule } from './statistics/statistics.module';
+import { StatisticEntity } from './statistics/entities/statistic.entity';
 
 @Module({
   imports: [
@@ -26,16 +26,16 @@ import { BetEntity } from './bets/entities/bet.entity';
         TournamentEntity,
         MatchEntity,
         UserEntity,
-        TableEntity,
         BetEntity,
+        StatisticEntity,
       ],
       synchronize: true,
     }),
     TournamentsModule,
     MatchesModule,
     UsersModule,
-    TablesModule,
     BetsModule,
+    StatisticsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
