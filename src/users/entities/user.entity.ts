@@ -1,4 +1,3 @@
-import { Exclude } from 'class-transformer';
 import {
   Column,
   CreateDateColumn,
@@ -9,6 +8,7 @@ import {
 } from 'typeorm';
 import { BetEntity } from '../../bets/entities/bet.entity';
 import { StatisticEntity } from '../../statistics/entities/statistic.entity';
+import { Role } from '../../types/authTypes';
 
 @Entity('users')
 export class UserEntity {
@@ -16,14 +16,17 @@ export class UserEntity {
   id: number;
 
   @Column({ nullable: false })
+  vkId: number;
+
+  @Column({ nullable: false })
   fullName: string;
 
-  @Exclude()
-  @Column({ unique: true })
-  email: string;
-
-  @Column({ default: false })
-  isActivated: boolean;
+  @Column({
+    type: 'enum',
+    enum: Role,
+    default: Role.USER,
+  })
+  role: Role;
 
   @OneToMany(() => BetEntity, (bet) => bet.user)
   bets: BetEntity[];

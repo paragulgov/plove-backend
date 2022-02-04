@@ -12,16 +12,22 @@ import { BetsModule } from './bets/bets.module';
 import { BetEntity } from './bets/entities/bet.entity';
 import { StatisticsModule } from './statistics/statistics.module';
 import { StatisticEntity } from './statistics/entities/statistic.entity';
+import { AuthModule } from './auth/auth.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      envFilePath: '.env',
+      isGlobal: true,
+    }),
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'postgres',
-      password: '896896',
-      database: 'plove',
+      host: process.env.DB_HOST,
+      port: Number(process.env.DB_PORT),
+      username: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_DATABASE,
       entities: [
         TournamentEntity,
         MatchEntity,
@@ -36,6 +42,7 @@ import { StatisticEntity } from './statistics/entities/statistic.entity';
     UsersModule,
     BetsModule,
     StatisticsModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
