@@ -3,10 +3,12 @@ import { MatchesService } from './matches.service';
 import { MatchesController } from './matches.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MatchEntity } from './entities/match.entity';
+import { TournamentsModule } from '../tournaments/tournaments.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([MatchEntity])],
+  imports: [TournamentsModule, TypeOrmModule.forFeature([MatchEntity])],
   controllers: [MatchesController],
   providers: [MatchesService],
+  exports: [MatchesService],
 })
 export class MatchesModule {}

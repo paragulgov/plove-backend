@@ -1,14 +1,7 @@
-import {
-  Body,
-  ClassSerializerInterceptor,
-  Controller,
-  Get,
-  Param,
-  Post,
-  UseInterceptors,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { MatchesService } from './matches.service';
 import { CreateMatchDto } from './dto/create-match.dto';
+import { FindTournamentMatches } from './types';
 
 @Controller('matches')
 export class MatchesController {
@@ -24,7 +17,11 @@ export class MatchesController {
     return this.matchesService.findAll();
   }
 
-  @UseInterceptors(ClassSerializerInterceptor)
+  @Get('tournament')
+  findMatchesByTournamentId(@Query() query: FindTournamentMatches) {
+    return this.matchesService.findMatchesByTournamentId(query);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.matchesService.findOne(+id);

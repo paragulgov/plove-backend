@@ -15,7 +15,7 @@ export class AuthService {
   async getVkToken(dto: AuthVKDto): Promise<any> {
     const client_id = process.env.VK_CLIENT_ID;
     const client_secret = process.env.VK_CLIENT_SECRET;
-    const host = process.env.APP_HOST;
+    const host = `${process.env.APP_HOST}/login/vk`;
     const url = `https://oauth.vk.com/access_token?client_id=${client_id}&client_secret=${client_secret}&redirect_uri=${host}&code=${dto.code}`;
 
     return this.http.get(url).toPromise();
