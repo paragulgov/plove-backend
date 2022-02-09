@@ -9,4 +9,6 @@ export class CreateMatchDto {
 
   @IsNumber()
   tournamentId: number;
+
+  betsWillEndAt: Date;
 }

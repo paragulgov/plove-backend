@@ -32,6 +32,9 @@ export class MatchEntity {
   @IsBoolean()
   isFinished: boolean;
 
+  @Column({ type: 'timestamp' })
+  betsWillEndAt: Date;
+
   @ManyToOne(() => TournamentEntity, (tournament) => tournament.matches, {
     nullable: false,
   })
