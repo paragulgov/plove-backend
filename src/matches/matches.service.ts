@@ -9,6 +9,7 @@ import { Repository } from 'typeorm';
 import { MatchEntity } from './entities/match.entity';
 import { FindTournamentMatches } from './types';
 import { TournamentsService } from '../tournaments/tournaments.service';
+import { UpdateMatchDto } from './dto/update-match.dto';
 
 @Injectable()
 export class MatchesService {
@@ -18,17 +19,13 @@ export class MatchesService {
     private readonly tournamentsService: TournamentsService,
   ) {}
 
-  create(dto: CreateMatchDto) {
-    return this.matchesRepository.save({
+  async create(dto: CreateMatchDto) {
+    const match = await this.matchesRepository.save({
       ...dto,
       tournament: { id: dto.tournamentId },
     });
-  }
 
-  findAll() {
-    return this.matchesRepository.find({
-      relations: ['tournament'],
-    });
+    return this.matchesRepository.findOne(match.id);
   }
 
   async findMatchesByTournamentId(query: FindTournamentMatches) {
@@ -44,9 +41,9 @@ export class MatchesService {
 
     const [data, total] = await this.matchesRepository.findAndCount({
       where: { tournament: { id: +query.id } },
-      relations: ['tournament'],
       take: +query.take || 20,
       skip: +query.skip || 0,
+      order: { createdAt: 'DESC' },
     });
 
     return { data, total };
@@ -56,5 +53,16 @@ export class MatchesService {
     return this.matchesRepository.findOne(id, {
       relations: ['tournament', 'bets', 'bets.user'],
     });
+  }
+
+  async updateMatch(id: number, dto: UpdateMatchDto) {
+    await this.matchesRepository.update(id, dto);
+    const updatedMatch = await this.matchesRepository.findOne(id);
+
+    if (updatedMatch) {
+      return updatedMatch;
+    }
+
+    throw new NotFoundException();
   }
 }

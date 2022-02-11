@@ -1,3 +1,6 @@
-import { CreateMatchDto } from './create-match.dto';
+import { IsString } from 'class-validator';
 
-export class UpdateMatchDto extends CreateMatchDto {}
+export class UpdateMatchDto {
+  @IsString()
+  betsWillEndAt: string;
+}
