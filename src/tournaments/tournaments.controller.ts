@@ -12,7 +12,7 @@ import {
 import { TournamentsService } from './tournaments.service';
 import { CreateTournamentDto } from './dto/create-tournament.dto';
 import { UpdateTournamentDto } from './dto/update-tournament.dto';
-import { getAllTournamentsQuery } from './types';
+import { GetAllTournamentsQuery } from './types';
 import { JwtAuthGuard } from '../custom/guards/jwt-auth.guard';
 import { RolesGuard } from '../custom/guards/roles.guard';
 import { Roles } from '../custom/decorators/roles.decorator';
@@ -30,7 +30,7 @@ export class TournamentsController {
   }
 
   @Get()
-  findAll(@Query() query: getAllTournamentsQuery) {
+  findAll(@Query() query: GetAllTournamentsQuery) {
     return this.tournamentsService.findAll(query);
   }
 

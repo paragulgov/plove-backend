@@ -4,7 +4,7 @@ import { UpdateTournamentDto } from './dto/update-tournament.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TournamentEntity } from './entities/tournament.entity';
-import { getAllTournamentsQuery } from './types';
+import { GetAllTournamentsQuery } from './types';
 
 @Injectable()
 export class TournamentsService {
@@ -17,7 +17,7 @@ export class TournamentsService {
     return this.tournamentRepository.save(dto);
   }
 
-  async findAll(query: getAllTournamentsQuery) {
+  async findAll(query: GetAllTournamentsQuery) {
     const [data, total] = await this.tournamentRepository.findAndCount({
       order: { createdAt: 'DESC' },
       take: +query.take || 5,
@@ -27,8 +27,14 @@ export class TournamentsService {
     return { data, total };
   }
 
-  findOne(id: number) {
-    return this.tournamentRepository.findOne(id);
+  async findOne(id: number) {
+    const tournament = await this.tournamentRepository.findOne(id);
+
+    if (!tournament) {
+      throw new NotFoundException();
+    }
+
+    return tournament;
   }
 
   async update(id: number, dto: UpdateTournamentDto) {

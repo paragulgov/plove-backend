@@ -7,7 +7,7 @@ import { CreateMatchDto } from './dto/create-match.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { MatchEntity } from './entities/match.entity';
-import { FindTournamentMatches } from './types';
+import { FindTournamentMatchesQuery } from './types';
 import { TournamentsService } from '../tournaments/tournaments.service';
 import { UpdateMatchDto } from './dto/update-match.dto';
 
@@ -28,7 +28,7 @@ export class MatchesService {
     return this.matchesRepository.findOne(match.id);
   }
 
-  async findMatchesByTournamentId(query: FindTournamentMatches) {
+  async findMatchesByTournamentId(query: FindTournamentMatchesQuery) {
     if (!query.id) {
       throw new BadRequestException();
     }
@@ -49,10 +49,14 @@ export class MatchesService {
     return { data, total };
   }
 
-  findOne(id: number) {
-    return this.matchesRepository.findOne(id, {
-      relations: ['tournament', 'bets', 'bets.user'],
-    });
+  async findOne(id: number) {
+    const match = await this.matchesRepository.findOne(id);
+
+    if (!match) {
+      throw new NotFoundException();
+    }
+
+    return match;
   }
 
   async updateMatch(id: number, dto: UpdateMatchDto) {

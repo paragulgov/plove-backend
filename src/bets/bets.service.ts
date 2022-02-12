@@ -7,7 +7,7 @@ import { CreateBetDto } from './dto/create-bet.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { BetEntity } from './entities/bet.entity';
-import { FindMatchBets } from './types';
+import { FindMatchBetsQuery } from './types';
 import { MatchesService } from '../matches/matches.service';
 
 @Injectable()
@@ -18,11 +18,11 @@ export class BetsService {
     private readonly matchesService: MatchesService,
   ) {}
 
-  create(dto: CreateBetDto) {
+  async create(userId: number, dto: CreateBetDto) {
     return this.betsRepository.save({
       ...dto,
       match: { id: dto.matchId },
-      user: { id: 1 },
+      user: { id: userId },
     });
   }
 
@@ -30,21 +30,26 @@ export class BetsService {
     return this.betsRepository.find({ relations: ['match', 'user'] });
   }
 
-  async findByMatch(query: FindMatchBets) {
+  async findByMatch(query: FindMatchBetsQuery) {
     if (!query.id) {
       throw new BadRequestException();
     }
 
-    const match = await this.matchesService.findOne(query.id);
+    const match = await this.matchesService.findOne(+query.id);
 
     if (!match) {
       throw new NotFoundException();
     }
 
-    return this.betsRepository.find({
-      where: { match: { id: query.id } },
+    const [data, total] = await this.betsRepository.findAndCount({
+      where: { match: { id: +query.id } },
+      take: +query.take || 30,
+      skip: +query.skip || 0,
       relations: ['user'],
+      order: { updatedAt: 'DESC' },
     });
+
+    return { data, total };
   }
 
   findByUser(userId: number) {

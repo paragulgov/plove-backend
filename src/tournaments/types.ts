@@ -1,4 +1,4 @@
-export interface getAllTournamentsQuery {
+export interface GetAllTournamentsQuery {
   take?: number;
   skip?: number;
 }

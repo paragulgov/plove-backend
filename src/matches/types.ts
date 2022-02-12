@@ -1,4 +1,4 @@
-export interface FindTournamentMatches {
+export interface FindTournamentMatchesQuery {
   id: number;
   take?: number;
   skip?: number;

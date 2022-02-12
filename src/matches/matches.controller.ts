@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { MatchesService } from './matches.service';
 import { CreateMatchDto } from './dto/create-match.dto';
-import { FindTournamentMatches } from './types';
+import { FindTournamentMatchesQuery } from './types';
 import { JwtAuthGuard } from '../custom/guards/jwt-auth.guard';
 import { RolesGuard } from '../custom/guards/roles.guard';
 import { Roles } from '../custom/decorators/roles.decorator';
@@ -29,7 +29,7 @@ export class MatchesController {
   }
 
   @Get('tournament')
-  findMatchesByTournamentId(@Query() query: FindTournamentMatches) {
+  findMatchesByTournamentId(@Query() query: FindTournamentMatchesQuery) {
     return this.matchesService.findMatchesByTournamentId(query);
   }
 

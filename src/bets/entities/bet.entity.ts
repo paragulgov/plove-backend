@@ -1,4 +1,11 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { UserEntity } from '../../users/entities/user.entity';
 import { MatchEntity } from '../../matches/entities/match.entity';
 
@@ -33,4 +40,10 @@ export class BetEntity {
 
   @ManyToOne(() => UserEntity, (user) => user.bets)
   user: UserEntity;
+
+  @CreateDateColumn({ type: 'timestamp' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ type: 'timestamp' })
+  updatedAt: Date;
 }
