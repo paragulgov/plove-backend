@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -19,15 +20,37 @@ export class BetsService {
   ) {}
 
   async create(userId: number, dto: CreateBetDto) {
-    return this.betsRepository.save({
+    const guard = await this.betsRepository.find({
+      where: { match: { id: dto.matchId }, user: { id: userId } },
+    });
+
+    if (guard.length > 0) {
+      throw new ForbiddenException();
+    }
+
+    const created = await this.betsRepository.save({
       ...dto,
       match: { id: dto.matchId },
       user: { id: userId },
     });
+
+    if (!created) {
+      throw new BadRequestException();
+    }
+
+    return this.betsRepository.findOne(created.id, { relations: ['user'] });
   }
 
-  findAll() {
-    return this.betsRepository.find({ relations: ['match', 'user'] });
+  async checkAccess(userId: number, matchId: number) {
+    const find = await this.betsRepository.find({
+      where: { match: { id: matchId }, user: { id: userId } },
+    });
+
+    if (find.length > 0) {
+      return { access: false };
+    } else {
+      return { access: true };
+    }
   }
 
   async findByMatch(query: FindMatchBetsQuery) {

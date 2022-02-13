@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { BetsService } from './bets.service';
 import { CreateBetDto } from './dto/create-bet.dto';
 import { FindMatchBetsQuery } from './types';
@@ -15,11 +23,6 @@ export class BetsController {
     return this.betsService.create(user.id, dto);
   }
 
-  @Get()
-  findAll() {
-    return this.betsService.findAll();
-  }
-
   @Get('match')
   findByMatch(@Query() query: FindMatchBetsQuery) {
     return this.betsService.findByMatch(query);
@@ -28,5 +31,11 @@ export class BetsController {
   @Get('user')
   findByUser(@Query() query: { id?: string }) {
     return this.betsService.findByUser(+query.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('checkAccess/:id')
+  checkAccess(@GetUser() user, @Param('id') matchId: string) {
+    return this.betsService.checkAccess(+user.id, +matchId);
   }
 }
