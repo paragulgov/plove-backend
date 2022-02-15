@@ -16,6 +16,10 @@ import { RolesGuard } from '../custom/guards/roles.guard';
 import { Roles } from '../custom/decorators/roles.decorator';
 import { Role } from '../types/authTypes';
 import { UpdateMatchDto } from './dto/update-match.dto';
+import { ResultMatchDto } from './dto/result-match.dto';
+import { GetUser } from '../custom/decorators/getUser.decorator';
+import { CreateBetDto } from '../bets/dto/create-bet.dto';
+import { UpdateBetDto } from '../bets/dto/update-bet.dto';
 
 @Controller('matches')
 export class MatchesController {
@@ -24,13 +28,30 @@ export class MatchesController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.MODERATOR, Role.ADMIN)
   @Post()
-  create(@Body() dto: CreateMatchDto) {
-    return this.matchesService.create(dto);
+  createMatch(@Body() dto: CreateMatchDto) {
+    return this.matchesService.createMatch(dto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('bets')
+  createBet(@GetUser() user, @Body() dto: CreateBetDto) {
+    return this.matchesService.createBet(user.id, dto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('bets')
+  updateBet(@GetUser() user, @Body() dto: UpdateBetDto) {
+    return this.matchesService.updateBet(user.id, dto);
   }
 
   @Get('tournament')
   findMatchesByTournamentId(@Query() query: FindTournamentMatchesQuery) {
     return this.matchesService.findMatchesByTournamentId(query);
+  }
+
+  @Patch('result/:id')
+  resultMatch(@Param('id') id: string, @Body() dto: ResultMatchDto) {
+    return this.matchesService.resultMatch(+id, dto);
   }
 
   @Get(':id')
@@ -41,7 +62,7 @@ export class MatchesController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.MODERATOR, Role.ADMIN)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateMatchDto) {
+  updateMatch(@Param('id') id: string, @Body() dto: UpdateMatchDto) {
     return this.matchesService.updateMatch(+id, dto);
   }
 }

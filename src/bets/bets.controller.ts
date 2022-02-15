@@ -1,14 +1,5 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Post,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
 import { BetsService } from './bets.service';
-import { CreateBetDto } from './dto/create-bet.dto';
 import { FindMatchBetsQuery } from './types';
 import { GetUser } from '../custom/decorators/getUser.decorator';
 import { JwtAuthGuard } from '../custom/guards/jwt-auth.guard';
@@ -16,12 +7,6 @@ import { JwtAuthGuard } from '../custom/guards/jwt-auth.guard';
 @Controller('bets')
 export class BetsController {
   constructor(private readonly betsService: BetsService) {}
-
-  @UseGuards(JwtAuthGuard)
-  @Post()
-  create(@GetUser() user, @Body() dto: CreateBetDto) {
-    return this.betsService.create(user.id, dto);
-  }
 
   @Get('match')
   findByMatch(@Query() query: FindMatchBetsQuery) {

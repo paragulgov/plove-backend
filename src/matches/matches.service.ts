@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -10,6 +11,10 @@ import { MatchEntity } from './entities/match.entity';
 import { FindTournamentMatchesQuery } from './types';
 import { TournamentsService } from '../tournaments/tournaments.service';
 import { UpdateMatchDto } from './dto/update-match.dto';
+import { ResultMatchDto } from './dto/result-match.dto';
+import { BetsService } from '../bets/bets.service';
+import { CreateBetDto } from '../bets/dto/create-bet.dto';
+import { UpdateBetDto } from '../bets/dto/update-bet.dto';
 
 @Injectable()
 export class MatchesService {
@@ -17,15 +22,36 @@ export class MatchesService {
     @InjectRepository(MatchEntity)
     private matchesRepository: Repository<MatchEntity>,
     private readonly tournamentsService: TournamentsService,
+    private readonly betsService: BetsService,
   ) {}
 
-  async create(dto: CreateMatchDto) {
+  async createMatch(dto: CreateMatchDto) {
     const match = await this.matchesRepository.save({
       ...dto,
       tournament: { id: dto.tournamentId },
     });
 
     return this.matchesRepository.findOne(match.id);
+  }
+
+  async createBet(userId: number, dto: CreateBetDto) {
+    const checkTime = await this.matchesRepository.findOne(dto.matchId);
+
+    if (new Date(checkTime.betsWillEndAt).getTime() < new Date().getTime()) {
+      throw new ForbiddenException();
+    }
+
+    return this.betsService.create(userId, dto);
+  }
+
+  async updateBet(userId: number, dto: UpdateBetDto) {
+    const checkTime = await this.matchesRepository.findOne(dto.matchId);
+
+    if (new Date(checkTime.betsWillEndAt).getTime() < new Date().getTime()) {
+      throw new ForbiddenException();
+    }
+
+    return this.betsService.updateBet(userId, dto);
   }
 
   async findMatchesByTournamentId(query: FindTournamentMatchesQuery) {
@@ -68,5 +94,17 @@ export class MatchesService {
     }
 
     throw new NotFoundException();
+  }
+
+  async resultMatch(id: number, dto: ResultMatchDto) {
+    await this.matchesRepository.update(id, {
+      homeTeamGoals: dto.homeTeamGoals,
+      awayTeamGoals: dto.awayTeamGoals,
+      isFinished: true,
+    });
+
+    await this.betsService.calculateBets(id, dto);
+
+    return { message: 'Матч завершен. Прогнозы посчитаны. Обновите страницу' };
   }
 }

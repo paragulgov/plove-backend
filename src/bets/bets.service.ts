@@ -2,29 +2,29 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
-  NotFoundException,
 } from '@nestjs/common';
 import { CreateBetDto } from './dto/create-bet.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { BetEntity } from './entities/bet.entity';
 import { FindMatchBetsQuery } from './types';
-import { MatchesService } from '../matches/matches.service';
+import { getConnection } from 'typeorm';
+import { ResultMatchDto } from '../matches/dto/result-match.dto';
+import { UpdateBetDto } from './dto/update-bet.dto';
 
 @Injectable()
 export class BetsService {
   constructor(
     @InjectRepository(BetEntity)
     private betsRepository: Repository<BetEntity>,
-    private readonly matchesService: MatchesService,
   ) {}
 
   async create(userId: number, dto: CreateBetDto) {
-    const guard = await this.betsRepository.find({
+    const haveUserBet = await this.betsRepository.find({
       where: { match: { id: dto.matchId }, user: { id: userId } },
     });
 
-    if (guard.length > 0) {
+    if (haveUserBet.length > 0) {
       throw new ForbiddenException();
     }
 
@@ -58,12 +58,6 @@ export class BetsService {
       throw new BadRequestException();
     }
 
-    const match = await this.matchesService.findOne(+query.id);
-
-    if (!match) {
-      throw new NotFoundException();
-    }
-
     const [data, total] = await this.betsRepository.findAndCount({
       where: { match: { id: +query.id } },
       take: +query.take || 30,
@@ -84,5 +78,165 @@ export class BetsService {
       where: { user: { id: userId } },
       relations: ['match'],
     });
+  }
+
+  async updateBet(userId: number, dto: UpdateBetDto) {
+    return getConnection()
+      .createQueryBuilder()
+      .update(BetEntity)
+      .set({
+        homeTeamGoalsBet: dto.homeTeamGoalsBet,
+        awayTeamGoalsBet: dto.awayTeamGoalsBet,
+      })
+      .where('matchId = :matchId', { matchId: dto.matchId })
+      .andWhere('userId = :userId', { userId: userId })
+      .execute();
+  }
+
+  async calculateBets(matchId: number, dto: ResultMatchDto) {
+    const { homeTeamGoals, awayTeamGoals } = dto;
+
+    await getConnection()
+      .createQueryBuilder()
+      .update(BetEntity)
+      .set({
+        isFinished: true,
+      })
+      .where('matchId = :matchId', { matchId })
+
+      .execute();
+
+    if (homeTeamGoals > awayTeamGoals) {
+      const difference = homeTeamGoals - awayTeamGoals;
+
+      await getConnection()
+        .createQueryBuilder()
+        .update(BetEntity)
+        .set({
+          matchOutcome: true,
+          points: 1,
+        })
+        .where('matchId = :matchId', { matchId })
+        .andWhere('homeTeamGoalsBet > awayTeamGoalsBet')
+        .execute();
+
+      await getConnection()
+        .createQueryBuilder()
+        .update(BetEntity)
+        .set({
+          matchOutcome: true,
+          goalDifference: true,
+          points: 2,
+        })
+        .where('matchId = :matchId', { matchId })
+        .andWhere('homeTeamGoalsBet - awayTeamGoalsBet = :difference', {
+          difference,
+        })
+        .execute();
+
+      await getConnection()
+        .createQueryBuilder()
+        .update(BetEntity)
+        .set({
+          matchOutcome: true,
+          goalDifference: true,
+          accurateScore: true,
+          points: 3,
+        })
+        .where('matchId = :matchId', { matchId })
+        .andWhere('homeTeamGoalsBet = :homeTeamGoals', {
+          homeTeamGoals,
+        })
+        .andWhere('awayTeamGoalsBet = :awayTeamGoals', {
+          awayTeamGoals,
+        })
+        .execute();
+    } else if (homeTeamGoals < awayTeamGoals) {
+      const difference = awayTeamGoals - homeTeamGoals;
+
+      await getConnection()
+        .createQueryBuilder()
+        .update(BetEntity)
+        .set({
+          matchOutcome: true,
+          points: 1,
+        })
+        .where('matchId = :matchId', { matchId })
+        .andWhere('homeTeamGoalsBet < awayTeamGoalsBet')
+        .execute();
+
+      await getConnection()
+        .createQueryBuilder()
+        .update(BetEntity)
+        .set({
+          matchOutcome: true,
+          goalDifference: true,
+          points: 2,
+        })
+        .where('matchId = :matchId', { matchId })
+        .andWhere('awayTeamGoalsBet - homeTeamGoalsBet = :difference', {
+          difference,
+        })
+        .execute();
+
+      await getConnection()
+        .createQueryBuilder()
+        .update(BetEntity)
+        .set({
+          matchOutcome: true,
+          goalDifference: true,
+          accurateScore: true,
+          points: 3,
+        })
+        .where('matchId = :matchId', { matchId })
+        .andWhere('homeTeamGoalsBet = :homeTeamGoals', {
+          homeTeamGoals,
+        })
+        .andWhere('awayTeamGoalsBet = :awayTeamGoals', {
+          awayTeamGoals,
+        })
+        .execute();
+    } else {
+      await getConnection()
+        .createQueryBuilder()
+        .update(BetEntity)
+        .set({
+          matchOutcome: true,
+          points: 1,
+        })
+        .where('matchId = :matchId', { matchId })
+        .andWhere('homeTeamGoalsBet = awayTeamGoalsBet')
+        .execute();
+
+      await getConnection()
+        .createQueryBuilder()
+        .update(BetEntity)
+        .set({
+          matchOutcome: true,
+          goalDifference: true,
+          points: 2,
+        })
+        .where('matchId = :matchId', { matchId })
+        .andWhere('awayTeamGoalsBet - homeTeamGoalsBet = 0')
+        .execute();
+
+      await getConnection()
+        .createQueryBuilder()
+        .update(BetEntity)
+        .set({
+          matchOutcome: true,
+          goalDifference: true,
+          accurateScore: true,
+          points: 3,
+        })
+        .where('matchId = :matchId', { matchId })
+        .andWhere('homeTeamGoalsBet = :homeTeamGoals', {
+          homeTeamGoals,
+        })
+        .andWhere('awayTeamGoalsBet = :awayTeamGoals', {
+          awayTeamGoals,
+        })
+        .execute();
+    }
   }
 }
