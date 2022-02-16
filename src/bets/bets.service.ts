@@ -5,10 +5,9 @@ import {
 } from '@nestjs/common';
 import { CreateBetDto } from './dto/create-bet.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { getConnection, getRepository, Repository } from 'typeorm';
 import { BetEntity } from './entities/bet.entity';
 import { FindMatchBetsQuery } from './types';
-import { getConnection } from 'typeorm';
 import { ResultMatchDto } from '../matches/dto/result-match.dto';
 import { UpdateBetDto } from './dto/update-bet.dto';
 
@@ -91,6 +90,104 @@ export class BetsService {
       .where('matchId = :matchId', { matchId: dto.matchId })
       .andWhere('userId = :userId', { userId: userId })
       .execute();
+  }
+
+  async getUserIdsByMatchOutcome(
+    homeTeamGoals: number,
+    awayTeamGoals: number,
+    matchId,
+  ) {
+    if (homeTeamGoals > awayTeamGoals) {
+      const bets = await getRepository(BetEntity)
+        .createQueryBuilder('bet')
+        .leftJoinAndSelect('bet.user', 'user')
+        .where('bet.matchId = :matchId', { matchId: matchId })
+        .andWhere('bet.homeTeamGoalsBet > bet.awayTeamGoalsBet')
+        .getMany();
+
+      return bets.map((el) => el.user.id);
+    } else if (homeTeamGoals < awayTeamGoals) {
+      const bets = await getRepository(BetEntity)
+        .createQueryBuilder('bet')
+        .leftJoinAndSelect('bet.user', 'user')
+        .where('bet.matchId = :matchId', { matchId: matchId })
+        .andWhere('bet.homeTeamGoalsBet < bet.awayTeamGoalsBet')
+        .getMany();
+
+      return bets.map((el) => el.user.id);
+    } else {
+      const bets = await getRepository(BetEntity)
+        .createQueryBuilder('bet')
+        .leftJoinAndSelect('bet.user', 'user')
+        .where('bet.matchId = :matchId', { matchId })
+        .andWhere('bet.homeTeamGoalsBet = bet.awayTeamGoalsBet')
+        .getMany();
+
+      return bets.map((el) => el.user.id);
+    }
+  }
+
+  async getUserIdsByMatchDifference(
+    homeTeamGoals: number,
+    awayTeamGoals: number,
+    matchId,
+  ) {
+    if (homeTeamGoals > awayTeamGoals) {
+      const difference = homeTeamGoals - awayTeamGoals;
+
+      const bets = await getRepository(BetEntity)
+        .createQueryBuilder('bet')
+        .leftJoinAndSelect('bet.user', 'user')
+        .where('bet.matchId = :matchId', { matchId: matchId })
+        .andWhere('bet.homeTeamGoalsBet - bet.awayTeamGoalsBet = :difference', {
+          difference,
+        })
+        .getMany();
+
+      return bets.map((el) => el.user.id);
+    } else if (homeTeamGoals < awayTeamGoals) {
+      const difference = awayTeamGoals - homeTeamGoals;
+
+      const bets = await getRepository(BetEntity)
+        .createQueryBuilder('bet')
+        .leftJoinAndSelect('bet.user', 'user')
+        .where('bet.matchId = :matchId', { matchId: matchId })
+        .andWhere('bet.awayTeamGoalsBet - bet.homeTeamGoalsBet = :difference', {
+          difference,
+        })
+        .getMany();
+
+      return bets.map((el) => el.user.id);
+    } else {
+      const bets = await getRepository(BetEntity)
+        .createQueryBuilder('bet')
+        .leftJoinAndSelect('bet.user', 'user')
+        .where('bet.matchId = :matchId', { matchId: matchId })
+        .andWhere('bet.homeTeamGoalsBet - bet.awayTeamGoalsBet = 0')
+        .getMany();
+
+      return bets.map((el) => el.user.id);
+    }
+  }
+
+  async getUserIdsByMatchAccurate(
+    homeTeamGoals: number,
+    awayTeamGoals: number,
+    matchId,
+  ) {
+    const bets = await getRepository(BetEntity)
+      .createQueryBuilder('bet')
+      .leftJoinAndSelect('bet.user', 'user')
+      .where('bet.matchId = :matchId', { matchId: matchId })
+      .andWhere('bet.homeTeamGoalsBet = :homeTeamGoals', {
+        homeTeamGoals,
+      })
+      .andWhere('bet.awayTeamGoalsBet = :awayTeamGoals', {
+        awayTeamGoals,
+      })
+      .getMany();
+
+    return bets.map((el) => el.user.id);
   }
 
   async calculateBets(matchId: number, dto: ResultMatchDto) {

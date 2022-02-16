@@ -49,9 +49,15 @@ export class MatchesController {
     return this.matchesService.findMatchesByTournamentId(query);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.MODERATOR, Role.ADMIN)
   @Patch('result/:id')
-  resultMatch(@Param('id') id: string, @Body() dto: ResultMatchDto) {
-    return this.matchesService.resultMatch(+id, dto);
+  resultMatch(
+    @Param('id') matchId: string,
+    @Body() dto: ResultMatchDto,
+    @GetUser() user,
+  ) {
+    return this.matchesService.resultMatch(+matchId, +user.id, dto);
   }
 
   @Get(':id')

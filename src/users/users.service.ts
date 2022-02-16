@@ -16,7 +16,7 @@ export class UsersService {
   }
 
   findAll() {
-    return this.usersRepository.find({ relations: ['bets'] });
+    return this.usersRepository.find();
   }
 
   async findById(id: number): Promise<UserEntity> {

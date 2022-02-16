@@ -15,6 +15,7 @@ import { ResultMatchDto } from './dto/result-match.dto';
 import { BetsService } from '../bets/bets.service';
 import { CreateBetDto } from '../bets/dto/create-bet.dto';
 import { UpdateBetDto } from '../bets/dto/update-bet.dto';
+import { StatisticsService } from '../statistics/statistics.service';
 
 @Injectable()
 export class MatchesService {
@@ -23,6 +24,7 @@ export class MatchesService {
     private matchesRepository: Repository<MatchEntity>,
     private readonly tournamentsService: TournamentsService,
     private readonly betsService: BetsService,
+    private readonly statisticsService: StatisticsService,
   ) {}
 
   async createMatch(dto: CreateMatchDto) {
@@ -39,6 +41,24 @@ export class MatchesService {
 
     if (new Date(checkTime.betsWillEndAt).getTime() < new Date().getTime()) {
       throw new ForbiddenException();
+    }
+
+    const match = await this.matchesRepository.findOne(dto.matchId, {
+      relations: ['tournament'],
+    });
+
+    const tournamentId = match.tournament.id;
+
+    const statistic = await this.statisticsService.findByUser(
+      userId,
+      tournamentId,
+    );
+
+    if (statistic.length < 1) {
+      await this.statisticsService.create({
+        tournamentId: tournamentId,
+        userId: userId,
+      });
     }
 
     return this.betsService.create(userId, dto);
@@ -96,15 +116,64 @@ export class MatchesService {
     throw new NotFoundException();
   }
 
-  async resultMatch(id: number, dto: ResultMatchDto) {
-    await this.matchesRepository.update(id, {
+  async resultMatch(matchId: number, userId: number, dto: ResultMatchDto) {
+    await this.matchesRepository.update(matchId, {
       homeTeamGoals: dto.homeTeamGoals,
       awayTeamGoals: dto.awayTeamGoals,
       isFinished: true,
     });
 
-    await this.betsService.calculateBets(id, dto);
+    await this.betsService.calculateBets(matchId, dto);
 
-    return { message: 'Матч завершен. Прогнозы посчитаны. Обновите страницу' };
+    const userOutcomeIds = await this.betsService.getUserIdsByMatchOutcome(
+      dto.homeTeamGoals,
+      dto.awayTeamGoals,
+      matchId,
+    );
+
+    const userDifferenceIds =
+      await this.betsService.getUserIdsByMatchDifference(
+        dto.homeTeamGoals,
+        dto.awayTeamGoals,
+        matchId,
+      );
+
+    const userAccurateIds = await this.betsService.getUserIdsByMatchAccurate(
+      dto.homeTeamGoals,
+      dto.awayTeamGoals,
+      matchId,
+    );
+
+    const match = await this.matchesRepository.findOne(matchId, {
+      relations: ['tournament'],
+    });
+
+    userOutcomeIds.map(async (id) => {
+      await this.statisticsService.updatePoints(
+        id,
+        match.tournament.id,
+        'outcome',
+      );
+    });
+
+    userDifferenceIds.map(async (id) => {
+      await this.statisticsService.updatePoints(
+        id,
+        match.tournament.id,
+        'difference',
+      );
+    });
+
+    userAccurateIds.map(async (id) => {
+      await this.statisticsService.updatePoints(
+        id,
+        match.tournament.id,
+        'accurate',
+      );
+    });
+
+    const { tournament, ...returnData } = match;
+
+    return returnData;
   }
 }

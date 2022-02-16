@@ -28,11 +28,47 @@ export class StatisticsService {
     }
 
     return this.statisticRepository.find({
-      where: { tournament: { id: tournamentId }, user: { id: 1 } },
+      where: { tournament: { id: tournamentId } },
       relations: ['user'],
     });
   }
-}
 
-// where: { tournament: { id: tournamentId }, user: { id: 1 } },
-// relations: ['user'],
+  findByUser(userId: number, tournamentId: number) {
+    if (!userId) {
+      throw new BadRequestException();
+    }
+
+    return this.statisticRepository.find({
+      where: { tournament: { id: tournamentId }, user: { id: userId } },
+      relations: ['user'],
+    });
+  }
+
+  async updatePoints(
+    userId: number,
+    tournamentId: number,
+    type: 'accurate' | 'outcome' | 'difference',
+  ) {
+    const findStatistic = await this.findByUser(userId, tournamentId);
+
+    if (type === 'outcome') {
+      return this.statisticRepository.save({
+        id: findStatistic[0].id,
+        points: findStatistic[0].points + 1,
+        matchOutcome: findStatistic[0].matchOutcome + 1,
+      });
+    } else if (type === 'difference') {
+      return this.statisticRepository.save({
+        id: findStatistic[0].id,
+        points: findStatistic[0].points + 1,
+        goalDifference: findStatistic[0].goalDifference + 1,
+      });
+    } else if (type === 'accurate') {
+      return this.statisticRepository.save({
+        id: findStatistic[0].id,
+        points: findStatistic[0].points + 1,
+        accurateScore: findStatistic[0].accurateScore + 1,
+      });
+    }
+  }
+}

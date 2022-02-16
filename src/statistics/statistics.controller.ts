@@ -1,12 +1,4 @@
-import {
-  Body,
-  ClassSerializerInterceptor,
-  Controller,
-  Get,
-  Post,
-  Query,
-  UseInterceptors,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { StatisticsService } from './statistics.service';
 import { CreateStatisticDto } from './dto/create-statistic.dto';
 
@@ -24,9 +16,16 @@ export class StatisticsController {
     return this.statisticsService.findAll();
   }
 
-  @UseInterceptors(ClassSerializerInterceptor)
   @Get('tournament')
   findByTournament(@Query() query: { id?: string }) {
     return this.statisticsService.findByTournament(+query.id);
+  }
+
+  @Get('user/:id')
+  findByUser(
+    @Param('id') id: string,
+    @Query() query: { tournamentId: string },
+  ) {
+    return this.statisticsService.findByUser(+id, +query.tournamentId);
   }
 }

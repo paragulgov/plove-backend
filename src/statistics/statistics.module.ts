@@ -8,5 +8,6 @@ import { StatisticEntity } from './entities/statistic.entity';
   imports: [TypeOrmModule.forFeature([StatisticEntity])],
   controllers: [StatisticsController],
   providers: [StatisticsService],
+  exports: [StatisticsService],
 })
 export class StatisticsModule {}
