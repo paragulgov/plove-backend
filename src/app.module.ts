@@ -27,7 +27,10 @@ import { ConfigModule } from '@nestjs/config';
       username: process.env.DATABASE_USERNAME,
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_NAME,
-      ssl: true,
+      ssl: {
+        rejectUnauthorized: false,
+      },
+      synchronize: true,
       entities: [
         TournamentEntity,
         MatchEntity,
@@ -35,7 +38,6 @@ import { ConfigModule } from '@nestjs/config';
         BetEntity,
         StatisticEntity,
       ],
-      synchronize: true,
     }),
     TournamentsModule,
     MatchesModule,
