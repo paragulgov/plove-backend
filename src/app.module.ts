@@ -30,7 +30,6 @@ import { ConfigModule } from '@nestjs/config';
       ssl: {
         rejectUnauthorized: false,
       },
-      synchronize: true,
       entities: [
         TournamentEntity,
         MatchEntity,
