@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateStatisticDto } from './dto/create-statistic.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { getRepository, Repository } from 'typeorm';
 import { StatisticEntity } from './entities/statistic.entity';
 
 @Injectable()
@@ -22,15 +22,18 @@ export class StatisticsService {
     return this.statisticRepository.find({ relations: ['user', 'tournament'] });
   }
 
-  findByTournament(tournamentId: number) {
+  async findByTournament(tournamentId: number) {
     if (!tournamentId) {
       throw new BadRequestException();
     }
 
-    return this.statisticRepository.find({
-      where: { tournament: { id: tournamentId } },
-      relations: ['user'],
-    });
+    return getRepository(StatisticEntity)
+      .createQueryBuilder('statistic')
+      .leftJoin('statistic.user', 'user')
+      .select()
+      .addSelect('user.fullName')
+      .addSelect('user.vkId')
+      .getRawMany();
   }
 
   findByUser(userId: number, tournamentId: number) {
