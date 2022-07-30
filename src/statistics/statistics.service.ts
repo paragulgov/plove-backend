@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateStatisticDto } from './dto/create-statistic.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { getRepository, Repository } from 'typeorm';
+import { getConnection, getRepository, Repository } from 'typeorm';
 import { StatisticEntity } from './entities/statistic.entity';
 
 @Injectable()
@@ -30,9 +30,11 @@ export class StatisticsService {
     return getRepository(StatisticEntity)
       .createQueryBuilder('statistic')
       .leftJoin('statistic.user', 'user')
+      .leftJoin('statistic.tournament', 'tournament')
       .select()
       .addSelect('user.fullName')
       .addSelect('user.vkId')
+      .where('tournament.id = :tournamentId', { tournamentId: tournamentId })
       .getRawMany();
   }
 
@@ -55,21 +57,54 @@ export class StatisticsService {
     const findStatistic = await this.findByUser(userId, tournamentId);
 
     if (type === 'outcome') {
-      return this.statisticRepository.save({
+      await getConnection()
+        .createQueryBuilder()
+        .update(StatisticEntity)
+        .set({
+          points: () => 'points + 1',
+        })
+        .where('userId = :userId', { userId: userId })
+        .andWhere('tournamentId = :tournamentId', {
+          tournamentId: tournamentId,
+        })
+        .execute();
+
+      return await this.statisticRepository.save({
         id: findStatistic[0].id,
-        points: findStatistic[0].points + 1,
         matchOutcome: findStatistic[0].matchOutcome + 1,
       });
     } else if (type === 'difference') {
-      return this.statisticRepository.save({
+      await getConnection()
+        .createQueryBuilder()
+        .update(StatisticEntity)
+        .set({
+          points: () => 'points + 1',
+        })
+        .where('userId = :userId', { userId: userId })
+        .andWhere('tournamentId = :tournamentId', {
+          tournamentId: tournamentId,
+        })
+        .execute();
+
+      return await this.statisticRepository.save({
         id: findStatistic[0].id,
-        points: findStatistic[0].points + 1,
         goalDifference: findStatistic[0].goalDifference + 1,
       });
     } else if (type === 'accurate') {
-      return this.statisticRepository.save({
+      await getConnection()
+        .createQueryBuilder()
+        .update(StatisticEntity)
+        .set({
+          points: () => 'points + 1',
+        })
+        .where('userId = :userId', { userId: userId })
+        .andWhere('tournamentId = :tournamentId', {
+          tournamentId: tournamentId,
+        })
+        .execute();
+
+      return await this.statisticRepository.save({
         id: findStatistic[0].id,
-        points: findStatistic[0].points + 1,
         accurateScore: findStatistic[0].accurateScore + 1,
       });
     }
